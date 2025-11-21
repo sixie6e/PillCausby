@@ -5,15 +5,15 @@ from shapely.geometry import Point
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
-LATITUDE = 
-LONGITUDE = 
-RADIUS_MILES = 5
-RADIUS_DEG = RADIUS_MILES / 69.047 
-API_KEY = ""
-API_URL = ""
-YEARS = 5
+latitude = 
+longitude = 
+radius_miles = 5
+radius_deg = radius_miles / 69.047 
+api_key = ""
+api_url = ""
+years = 5
 end_date = datetime.utcnow()
-start_date = end_date - timedelta(days=365 * YEARS)
+start_date = end_date - timedelta(days=365 * years)
 
 #refer to api docs, different methods of querying history
 def get_flight_data(lat, lon, radius, start_date, end_date, api_key, api_url):
@@ -47,7 +47,7 @@ def get_flight_data(lat, lon, radius, start_date, end_date, api_key, api_url):
         })
     return flight_points
 
-flight_data = get_flight_data(LATITUDE, LONGITUDE, RADIUS_MILES, start_date, end_date, API_KEY, API_URL)
+flight_data = get_flight_data(latitude, longitude, radius_miles, start_date, end_date, api_key, api_url)
 
 if not flight_data:
     print("exiting, no data...")
@@ -56,8 +56,8 @@ if not flight_data:
 df = pd.DataFrame(flight_data)
 geometry = [Point(xy) for xy in zip(df.lon, df.lat)]
 gdf = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:4326")
-center_point = Point(LONGITUDE, LATITUDE)
-# UTM zone for Maine, 19N for USA
+center_point = Point(longitude, latitude)
+# UTM zone for Maine, 19N for USA)
 gdf_projected = gdf.to_crs(epsg=26919) 
 center_point_projected = gpd.GeoSeries([center_point], crs="EPSG:4326").to_crs(epsg=26919)
 # 5 mi ~ 8046.72m
@@ -76,13 +76,13 @@ gpd.GeoSeries(center_point_projected).to_crs(epsg=4326).plot(ax=ax, color='blue'
 gpd.GeoSeries(buffer).to_crs(epsg=4326).plot(ax=ax, color='blue', alpha=0.2)
 
 # map boundaries
-ax.set_xlim(LONGITUDE - 0.1, LONGITUDE + 0.1) # zoom boundary adjust
-ax.set_ylim(LATITUDE - 0.1, LATITUDE + 0.1) # zoom boundary adjust
-ax.set_title(f'Flight paths within {RADIUS_MILES} miles of {LATITUDE}, {LONGITUDE}')
-ax.set_xlabel('Longitude')
-ax.set_ylabel('Latitude')
+ax.set_xlim(longitude - 0.1, longitude + 0.1) # zoom boundary adjust
+ax.set_ylim(latitude - 0.1, latitude + 0.1)
+ax.set_title(f'Flight paths within {radius_miles} miles of {latitude}, {longitude}')
+ax.set_xlabel('longitude')
+ax.set_ylabel('latitude')
 plt.grid(True)
 image_path = 'flightpaths.png'
 plt.savefig(image_path)
-print(f"PathMap saved to {image_path}")
+print(f"Image saved to {image_path}")
 plt.show()
