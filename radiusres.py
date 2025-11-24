@@ -4,8 +4,9 @@ import geopandas as gpd
 from shapely.geometry import Point
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+#import imageio.v3 as imageio
 
-latitude = 
+latitude =
 longitude = 
 radius_miles = 5
 radius_deg = radius_miles / 69.047 
@@ -37,7 +38,7 @@ def get_flight_data(lat, lon, radius, start_date, end_date, api_key, api_url):
     #     print(f"Failed: {response.status_code}")
     #     return []
 
-    print("arbitrary data for test...")
+    print("Arbitrary data for test...")
     import random
     flight_points = []
     for _ in range(1000): # random 1000 data points
@@ -50,39 +51,36 @@ def get_flight_data(lat, lon, radius, start_date, end_date, api_key, api_url):
 flight_data = get_flight_data(latitude, longitude, radius_miles, start_date, end_date, api_key, api_url)
 
 if not flight_data:
-    print("exiting, no data...")
+    print("Exiting, no data...")
     exit()
 
 df = pd.DataFrame(flight_data)
 geometry = [Point(xy) for xy in zip(df.lon, df.lat)]
 gdf = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:4326")
 center_point = Point(longitude, latitude)
-# UTM zone for Maine, 19N for USA)
+# UTM zone for Maine, 19N for USA
 gdf_projected = gdf.to_crs(epsg=26919) 
 center_point_projected = gpd.GeoSeries([center_point], crs="EPSG:4326").to_crs(epsg=26919)
 # 5 mi ~ 8046.72m
 buffer = center_point_projected.buffer(8046.72) 
 gdf_filtered = gdf_projected[gdf_projected.within(buffer.iloc[0])]
-
 fig, ax = plt.subplots(figsize=(10, 10))
-'''
-#base map optional
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-world.plot(ax=ax, color='white', edgecolor='black')
-'''
+
 if not gdf_filtered.empty:
     gdf_filtered.plot(ax=ax, marker='.', color='red', markersize=2, alpha=0.5)
 gpd.GeoSeries(center_point_projected).to_crs(epsg=4326).plot(ax=ax, color='blue', marker='o', markersize=50)
 gpd.GeoSeries(buffer).to_crs(epsg=4326).plot(ax=ax, color='blue', alpha=0.2)
 
 # map boundaries
-ax.set_xlim(longitude - 0.1, longitude + 0.1) # zoom boundary adjust
-ax.set_ylim(latitude - 0.1, latitude + 0.1)
+#ax.set_xlim(longitude - 0.2, longitude + 0.2) # zoom boundary adjust
+#ax.set_ylim(latitude - 0.1, latitude + 0.1)
 ax.set_title(f'Flight paths within {radius_miles} miles of {latitude}, {longitude}')
 ax.set_xlabel('longitude')
 ax.set_ylabel('latitude')
+img = plt.imread('center.png')
+plt.imshow(img, zorder=0, extent=[0.5, 8.0, 1.0, 7.0])
 plt.grid(True)
+plt.show()
 image_path = 'flightpaths.png'
 plt.savefig(image_path)
-print(f"Image saved to {image_path}")
-plt.show()
+print(f"Saved to {image_path}")
