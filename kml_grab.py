@@ -2,11 +2,13 @@ import pandas as pd
 from traffic.data import opensky
 from simplekml import Kml, Color
 from datetime import datetime, timedelta
+from opensky_api import OpenSkyApi
 
 icao = "a97b82" 
 start = "2021-01-01"
 end = "2026-01-01"
 outfile = f"{icao}.kml"
+api = OpenSkyApi(username='', password='')
 
 def get_flight_data(icao, start, end):
     print(f"Fetching data for {icao} from {start} to {end}...")
